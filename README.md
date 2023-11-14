@@ -1,5 +1,7 @@
 # Best night club in the city
 
+![img](skybar.png)
+
 ### Requirements
 ## Conceptual model
 
