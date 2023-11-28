@@ -94,7 +94,8 @@ ALTER TABLE
     `customer` ADD UNIQUE `customer_email_unique`(`email`);
 CREATE TABLE `inventory`(
     `itemId` INT NOT NULL PRIMARY KEY,
-    `item_type` INT NOT NULL,
+    `item_name` VARCHAR(40) NOT NULL,
+    `item_type` VARCHAR(40) NOT NULL,
     `item_code` INT NOT NULL,
     `quantity` INT NOT NULL,
     `price` INT NOT NULL
@@ -112,11 +113,11 @@ ALTER TABLE
 ALTER TABLE
     `reservation` ADD CONSTRAINT `reservation_event_id_foreign` FOREIGN KEY(`event_id`) REFERENCES `event`(`id`);
 ALTER TABLE
-    `receipt` ADD CONSTRAINT `receipt_table_id_foreign` FOREIGN KEY(`table_id`) REFERENCES `table`(`tableId`);
+    `receipt` ADD CONSTRAINT `receipt_table_id_foreign` FOREIGN KEY(`table_id`) REFERENCES `disco_table`(`tableId`);
 ALTER TABLE
     `customer` ADD CONSTRAINT `customer_membership_id_foreign` FOREIGN KEY(`membership_id`) REFERENCES `membership`(`id`);
 ALTER TABLE
-    `reservation` ADD CONSTRAINT `reservation_table_id_foreign` FOREIGN KEY(`table_id`) REFERENCES `table`(`tableId`);
+    `reservation` ADD CONSTRAINT `reservation_table_id_foreign` FOREIGN KEY(`table_id`) REFERENCES `disco_table`(`tableId`);
 ALTER TABLE
     `reservation` ADD CONSTRAINT `reservation_customer_id_foreign` FOREIGN KEY(`customer_id`) REFERENCES `customer`(`id`);
 ALTER TABLE
