@@ -5,7 +5,7 @@ CREATE TABLE `employee_schedule`(
     `enter_hour` TIME NOT NULL,
     `exit_hour` TIME NOT NULL
 );
-CREATE TABLE `table`(
+CREATE TABLE `disco_table`(
     `tableId` INT NOT NULL PRIMARY KEY,
     `location` VARCHAR(20) NOT NULL
 );
