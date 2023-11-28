@@ -49,27 +49,38 @@ By addressing these specific aspects, the database would help streamline operati
         Reservation:
             Fields: ReservationID, CustomerID, TableNumber, Date.
 
-
-Views:
-
-    Views for commonly used queries, e.g., top-selling items, popular events.
-
-Triggers:
-
-    For automatic actions, such as updating inventory after a sale.
-
 ## Relationships
 Reservation-Customer (One-to-Many):
 
     Relates Reservation with Customer for tracking preferences.
-Inventory-Sale (One-to-Many):
+Inventory-Sale (One-to-One):
 
     Links InventoryItem with sales transactions.
+Event-Employee (One-to-Many):
 
+    Relates the Employees who will work in an Event.
+
+### Possible Views
+Views:
+
+    Views for commonly used queries, e.g., top-selling items, popular events.
 
 # Result
 ## Physic Model:
 
 ![database](db.png)
 
-# QUERIES 
+# QUERIES
+
+artist
+consumption
+customer
+employee
+employee_schedule
+event
+event_employee
+inventory
+membership
+receipt
+reservation
+table
