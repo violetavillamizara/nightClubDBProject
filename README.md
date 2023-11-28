@@ -41,7 +41,7 @@ By addressing these specific aspects, the database would help streamline operati
         Employee:
             Attributes: EmployeeID (Primary Key), Name, ContactInfo, Role, Schedule.
         InventoryItem:
-            Attributes: ItemID (Primary Key), ItemType, Quantity, Cost.
+            Attributes: ItemID (Primary Key), ItemName, ItemType, Quantity, Cost.
         Event:
             Attributes: EventID (Primary Key), Name, Date, Type.
         Artist:
@@ -72,15 +72,231 @@ Views:
 
 # QUERIES
 
-artist
-consumption
-customer
-employee
-employee_schedule
-event
-event_employee
-inventory
-membership
-receipt
-reservation
-table
+### artist
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
+### consumption
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
+### customer
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
+### disco_table
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
+### employee
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
+### employee_schedule
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
+### event
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
+### event_employee
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
+### inventory
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
+### membership
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
+### receipt
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
+### reservation
+> CRUD QUERIES
+
+CREATE (means adding or inserting rows into a table).
+```sql
+
+```
+READ (means selecting rows from a table).
+```sql
+
+```
+UPDATE (means modifying rows in a table).
+```sql
+
+```
+DELETE (means removing rows from a table).
+```sql
+
+```
