@@ -69,3 +69,7 @@ Inventory-Sale (One-to-Many):
 
 # Result
 ## Physic Model:
+
+![database](db.png)
+
+# QUERIES 
