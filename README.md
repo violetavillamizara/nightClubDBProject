@@ -34,6 +34,59 @@ As the client, running a nightclub business, I have specific needs for the datab
 By addressing these specific aspects, the database would help streamline operations, enhance customer experience, and provide valuable insights for business growth and development.
 
 ## Logical Model:
+Tables
+
+The database consists of the following tables:
+
+    employee_schedule: This table stores information about employee schedules, including the type of schedule (full-time or part-time), the number of hours worked per week, and the enter and exit hours.
+
+    disco_table: This table stores information about the nightclub's tables, including the table ID and its location.
+
+    reservation: This table stores information about reservations, including the customer ID, event ID, date, table ID, number of people, and payment status.
+
+    event: This table stores information about events, including the event name, date, start time, end time, description, entry fee, and artist ID.
+
+    consumption: This table stores information about consumption, including the item ID, quantity, and receipt ID.
+
+    artist: This table stores information about the nightclub's artists, including the artist ID, name, description, phone number, and music genre.
+
+    membership: This table stores information about the nightclub's memberships, including the membership ID, type, description, preferences, and status.
+
+    event_employee: This table stores information about which employees are assigned to which events.
+    receipt: This table stores information about receipts, including the receipt ID, table ID, date and time, and payment method.
+
+    employee: This table stores information about the nightclub's employees, including the employee ID, name, last name, role, phone number, email address, gender (optional), date of birth, address, and schedule ID.
+
+    customer: This table stores information about the nightclub's customers, including the customer ID, name, last name, gender (optional), date of birth, phone number, email address, address, and membership ID.
+
+    inventory: This table stores information about the nightclub's inventory, including the item ID, item name, item type, item code, quantity, and price.
+
+Relationships
+
+The tables are related to each other in the following ways:
+
+The event_employee table has a foreign key constraint that references the event table. This means that each record in the event_employee table must have a corresponding record in the event table with the same event ID.
+
+    The consumption table has a foreign key constraint that references the receipt table. This means that each record in the consumption table must have a corresponding record in the receipt table with the same receipt ID.
+
+    The event table has a foreign key constraint that references the artist table. This means that each record in the event table must have a corresponding record in the artist table with the same artist ID.
+
+    The employee table has a foreign key constraint that references the employee_schedule table. This means that each record in the employee table must have a corresponding record in the employee_schedule table with the same schedule ID.
+
+    The reservation table has a foreign key constraint that references the event table. This means that each record in the reservation table must have a corresponding record in the event table with the same event ID.
+
+    The receipt table has a foreign key constraint that references the disco_table table. This means that each record in the receipt table must have a corresponding record in the disco_table table with the same table ID.
+
+    The customer table has a foreign key constraint that references the membership table. This means that each record in the customer table must have a corresponding record in the membership table with the same membership ID.
+
+    The reservation table has a foreign key constraint that references the disco_table table. This means that each record in the reservation table must have a corresponding record in the disco_table table with the same table ID.
+
+    The reservation table has a foreign key constraint that references the customer table. This means that each record in the reservation table must have a corresponding record in the customer table with the same customer ID.
+
+    The event_employee table has a foreign key constraint that references the employee table. This means that each record in the event_employee table must have a corresponding record in the employee table with the same employee ID.
+
+    The consumption table has a foreign key constraint that references the inventory table. This means that each record in the consumption table must have a corresponding record in the inventory table with the same item ID.
+
 
     Primary Entities:
         Customer:
@@ -47,7 +100,7 @@ By addressing these specific aspects, the database would help streamline operati
         Artist:
             Attributes: ArtistID (Primary Key), Name, Phone, MusicGender.
         Reservation:
-            Fields: ReservationID, CustomerID, TableNumber, Date.
+            Fields: ReservationID (Primary Key), CustomerID, TableNumber, Date.
 
 ## Relationships
 Reservation-Customer (One-to-Many):
@@ -70,10 +123,14 @@ Views:
 
 ![database](db.png)
 
+> database schema for managing a disco. This schema includes tables for employee schedules, disco tables, reservations, events, consumables, artists, memberships, event employees, receipts, employees, customers, and inventory. Foreign key constraints have been defined to establish relationships between these tables.
+
 # QUERIES
 
 ### artist
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -98,8 +155,29 @@ DELETE (means removing rows from a table).
 ```sql
 DELETE FROM artist WHERE id=3;
 ```
+</details>
+
+### Queries for artist
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
+```
+
 ### consumption
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -121,8 +199,29 @@ DELETE (means removing rows from a table).
 ```sql
 DELETE FROM consumption WHERE receipt_id=3;
 ```
+</details>
+
+### Queries for consumption
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
+```
+
 ### customer
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -148,8 +247,29 @@ DELETE (means removing rows from a table).
 ```sql
 DELETE FROM customer WHERE id=1;
 ```
+</details>
+
+### Queries for customer
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
+```
+
 ### disco_table
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -171,8 +291,29 @@ DELETE (means removing rows from a table).
 ```sql
 DELETE FROM disco_table WHERE location='Rooftop';
 ```
+</details>
+
+### Queries for disco_table
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
+```
+
 ### employee
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -198,8 +339,29 @@ DELETE (means removing rows from a table).
 ```sql
 DELETE FROM employee WHERE id=4;
 ```
+</details>
+
+### Queries for employee
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
+```
+
 ### employee_schedule
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -224,8 +386,29 @@ DELETE (means removing rows from a table).
 ```sql
 DELETE FROM employee_schedule WHERE type='part time';
 ```
+</details>
+
+### Queries for employee_schedule
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
+```
+
 ### event
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -251,8 +434,29 @@ DELETE (means removing rows from a table).
 ```sql
 DELETE FROM event WHERE id=1;
 ```
+</details>
+
+### Queries for event
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
+```
+
 ### event_employee
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -274,8 +478,29 @@ DELETE (means removing rows from a table).
 ```sql
 DELETE FROM event_employee WHERE id=3;
 ```
+</details>
+
+### Queries for event_employee
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
+```
+
 ### inventory
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -300,8 +525,29 @@ DELETE (means removing rows from a table).
 ```sql
 DELETE FROM inventory WHERE itemId=2;
 ```
+</details>
+
+### Queries for inventory
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
+```
+
 ### membership
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -326,8 +572,29 @@ DELETE (means removing rows from a table).
 ```sql
 DELETE FROM membership WHERE id=2;
 ```
+</details>
+
+### Queries for membership
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
+```
+
 ### receipt
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -352,8 +619,29 @@ DELETE (means removing rows from a table).
 ```sql
 DELETE FROM receipt WHERE table_id=4;
 ```
+</details>
+
+### Queries for receipt
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
+```
+
 ### reservation
-> CRUD QUERIES
+<details>
+<summary>
+> CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -377,4 +665,22 @@ UPDATE reservation SET payment_status=1;
 DELETE (means removing rows from a table).
 ```sql
 DELETE FROM reservation WHERE customer_id=2;
+```
+</details>
+
+### Queries for reservation
+1.
+```sql
+```
+2.
+```sql
+```
+3.
+```sql
+```
+4.
+```sql
+```
+5.
+```sql
 ```
