@@ -207,8 +207,26 @@ DELIMITER ;
 
 CALL getArtistsHighEF(10);
 ```
-4.
+4. Get artists with most events in a genre:
 ```sql
+DELIMITER $$
+CREATE PROCEDURE artistsMostEventsInGenre(IN ingenre VARCHAR(20), OUT inartist_name VARCHAR(20), OUT inevent_count INT)
+BEGIN
+    SELECT a.name, COUNT(e.id) AS event_count
+    INTO inartist_name, inevent_count
+    FROM artist a
+    LEFT JOIN event e ON a.id = e.artist_id
+    WHERE a.music_gender = ingenre
+    GROUP BY a.id
+    ORDER BY event_count DESC
+    LIMIT 1;
+END $$
+DELIMITER ;
+
+
+CALL artistsMostEventsInGenre('Rock', @genreArtistName, @eventCount);
+SELECT @genreArtistName, @eventCount;
+
 ```
 5.
 ```sql
@@ -264,11 +282,53 @@ DELIMITER ;
 
 CALL itemsIncreasingSales();
 ```
-2.
+2. Get items consumed during a specific event:
 ```sql
+DELIMITER $$
+CREATE PROCEDURE consumedItemsForEvent(IN inevent_id INT)
+BEGIN
+    SELECT DISTINCT i.item_name
+    FROM consumption c
+    JOIN inventory i ON c.item_id = i.itemId
+    JOIN receipt r ON c.receipt_id = r.id
+    JOIN reservation res ON r.table_id = res.table_id
+    WHERE res.event_id = p_event_id;
+END $$
+DELIMITER ;
+
+
+CALL consumedItemsForEvent(4);
 ```
-3.
+3. Items consumed with quantity exceeding average:
 ```sql
+DELIMITER $$
+CREATE PROCEDURE exceedingAverageQuantity(OUT out_item_name VARCHAR(40), OUT out_average_quantity INT)
+BEGIN
+    SELECT i.item_name, (SELECT AVG(c.quantity) FROM consumption c WHERE c.item_id = i.itemId) AS average_quantity
+    INTO out_item_name, out_average_quantity
+    FROM inventory i
+    WHERE (SELECT AVG(c.quantity) FROM consumption c WHERE c.item_id = i.itemId LIMIT 1) <
+    (SELECT MAX(c.quantity) FROM consumption c WHERE c.item_id = i.itemId LIMIT 1);
+END $$
+DELIMITER ;
+
+
+CALL exceedingAverageQuantity(@itemname, @average);
+SELECT @itemname, @average;
+
+-- second option of call procedure
+DELIMITER $$
+CREATE PROCEDURE callExceedingAverageQuantity()
+BEGIN
+    DECLARE itemName VARCHAR(40);
+    DECLARE average INT;
+
+    CALL exceedingAverageQuantity(itemName, average);
+
+    SELECT itemName AS 'Item Name', average AS 'Average Quantity';
+END $$
+DELIMITER ;
+
 ```
 4. Calculate Total Revenue from Consumables:
 ```sql
@@ -491,19 +551,34 @@ CALL identifyPopularTables();
 ```
 3. List tables located in the 'Rooftop' and their respective reservations:
 ```sql
-SELECT d.tableId, d.location, r.id AS reservation_id, r.date, r.number_of_people
-FROM disco_table d
-JOIN reservation r ON d.tableId = r.table_id
-WHERE d.location = 'Rooftop';
+DELIMITER $$
+CREATE PROCEDURE bestUbicationTables()
+BEGIN
+    SELECT d.tableId, d.location, r.id AS reservation_id, r.date, r.number_of_people
+    FROM disco_table d
+    JOIN reservation r ON d.tableId = r.table_id
+    WHERE d.location = 'Rooftop';
+END $$
+DELIMITER ;
+
+CALL bestUbicationTables();
 ```
 4. Find the table with the highest number of reservations in a specific month:
 ```sql
-SELECT d.tableId, d.location, COUNT(r.id) AS reservation_count
-FROM disco_table d
-LEFT JOIN reservation r ON d.tableId = r.table_id
-GROUP BY d.tableId, d.location
-ORDER BY reservation_count DESC
-LIMIT 1;
+DELIMITER $$
+CREATE PROCEDURE tableHighestReservationInMonth()
+BEGIN
+    SELECT d.tableId, d.location, COUNT(r.id) AS reservation_count
+    FROM disco_table d
+    LEFT JOIN reservation r ON d.tableId = r.table_id
+    GROUP BY d.tableId, d.location
+    ORDER BY reservation_count DESC
+    LIMIT 1;
+END $$
+DELIMITER ;
+
+
+CALL tableHighestReservationInMonth();
 ```
 5. List the total number of people served on all tables in one event:
 ```sql
@@ -556,16 +631,18 @@ DELETE FROM employee WHERE id=4;
 1. Which employees are near to their birthdays:
 ```sql
 DELIMITER $$
-CREATE PROCEDURE employeesBirthdayNextMonth(INOUT inmonth INT)
+CREATE PROCEDURE employeesBirthdayNextMonth(IN inmonth INT)
 BEGIN
-    SET p_month = MONTH(CURDATE()) + 1;
-    SELECT employee.name FROM employee
-    WHERE MONTH(date_of_birth) = inmonth;
+    DECLARE nextMonth INT;
+    SET nextMonth = inmonth + 1;
+
+    SELECT name FROM employee
+    WHERE MONTH(date_of_birth) = nextMonth;
 END $$
 DELIMITER ;
 
 
-CALL employeesBirthdayNextMonth();
+CALL employeesBirthdayNextMonth(10);
 ```
 2. Calculate average age of employees by role:
 ```sql
@@ -579,7 +656,7 @@ END $$
 DELIMITER ;
 
 
-CALL averageAgeByRole(waiter);
+CALL averageAgeByRole('waiter', @av_age);
 ```
 3. Consumptions served and satisfied by employee:
 ```sql
@@ -661,39 +738,30 @@ DELETE FROM employee_schedule WHERE type='part time';
 ### Queries for employee_schedule
 1. Procedure to calculate the total number of hours worked by each employee:
 ```sql
--- Procedimiento para calcular el total de horas trabajadas por cada empleado sin cursor
 DELIMITER //
-CREATE PROCEDURE CalcularTotalHorasTrabajadasSinCursor()
+CREATE PROCEDURE hoursWorkedByEmployee()
 BEGIN
-    -- Temporalmente desactiva el límite de tiempo para la ejecución del procedimiento
-    SET max_sp_recursion_depth = 1000;
+    CREATE TEMPORARY TABLE IF NOT EXISTS temp_total_hours (employee_id INT, total_hours INT);
 
-    -- Crea la tabla temporal para almacenar los resultados intermedios
-    CREATE TEMPORARY TABLE IF NOT EXISTS temp_total_hours (
-        employee_id INT,
-        total_hours INT
-    );
-
-    -- Inserta los resultados directamente utilizando una consulta
     INSERT INTO temp_total_hours (employee_id, total_hours)
-    SELECT e.id AS employee_id, COALESCE(SUM(es.hours), 0) AS total_hours
+    SELECT e.id AS employee_id, SUM(es.hours) AS total_hours
     FROM employee e
     LEFT JOIN employee_schedule es ON e.schedule_id = es.id
     GROUP BY e.id;
 
-    -- Muestra el resultado
     SELECT * FROM temp_total_hours;
 
-    -- Elimina la tabla temporal
     DROP TEMPORARY TABLE IF EXISTS temp_total_hours;
 END //
 DELIMITER ;
 
+
+CALL hoursWorkedByEmployee();
 ```
-2.
+2. Schedules associated to Events:
 ```sql
 DELIMITER //
-CREATE PROCEDURE ObtenerHorariosDetallesEventosAsociados()
+CREATE PROCEDURE associatedSchedulesEvent()
 BEGIN
     SELECT es.*, ev.name AS event_name, ev.date AS event_date
     FROM employee_schedule es
@@ -701,74 +769,66 @@ BEGIN
     JOIN event ev ON ee.event_id = ev.id;
 END //
 DELIMITER ;
+
+
+CALL associatedSchedulesEvent();
 ```
 3. Procedure to identify employees who are eligible for overtime pay:
 ```sql
--- Procedimiento para identificar empleados elegibles para pago de horas extras
-DELIMITER //
-CREATE PROCEDURE IdentificarEmpleadosHorasExtras()
+DELIMITER $$
+CREATE PROCEDURE overtimePayEmployees()
 BEGIN
-    -- Temporalmente desactiva el límite de tiempo para la ejecución del procedimiento
-    SET max_sp_recursion_depth = 1000;
+    CREATE TEMPORARY TABLE IF NOT EXISTS temp_overtime_eligible (employee_id INT, total_hours_worked INT);
 
-    -- Crea la tabla temporal para almacenar los resultados intermedios
-    CREATE TEMPORARY TABLE IF NOT EXISTS temp_overtime_eligible (
-        employee_id INT,
-        total_hours_worked INT
-    );
-
-    -- Inserta los resultados directamente utilizando una consulta
     INSERT INTO temp_overtime_eligible (employee_id, total_hours_worked)
-    SELECT e.id AS employee_id, COALESCE(SUM(es.hours), 0) AS total_hours_worked
+    SELECT e.id AS employee_id, SUM(es.hours) AS total_hours_worked
     FROM employee e
     LEFT JOIN employee_schedule es ON e.schedule_id = es.id
     GROUP BY e.id;
 
-    -- Muestra el resultado
     SELECT * FROM temp_overtime_eligible WHERE total_hours_worked > 40;
 
-    -- Elimina la tabla temporal
     DROP TEMPORARY TABLE IF EXISTS temp_overtime_eligible;
-END //
+END $$
 DELIMITER ;
 
+
+CALL overtimePayEmployees();
 ```
-4.
+4. Employee in schedule by entry fee:
 ```sql
-DELIMITER //
-CREATE PROCEDURE ObtenerHorariosEmpleadosPorTarifaEntrada(
-    IN p_entry_fee INT
-)
+DELIMITER $$
+CREATE PROCEDURE employeeInScheduleByFee(IN inentry_fee INT)
 BEGIN
     SELECT es.*, e.name AS employee_name
     FROM employee_schedule es
     JOIN employee e ON es.id = e.schedule_id
-    WHERE es.id IN (
-        SELECT DISTINCT es.id
+    WHERE es.id IN (SELECT DISTINCT es.id
         FROM employee_schedule es
         JOIN employee e ON es.id = e.schedule_id
         JOIN event_employee ee ON e.id = ee.employee_id
         JOIN event ev ON ee.event_id = ev.id
-        WHERE ev.entry_fee = p_entry_fee
+        WHERE ev.entry_fee = inentry_fee
     );
-END //
+END $$
 DELIMITER ;
+
+CALL employeeInScheduleByFee(20);
 ```
 5. Procedure to calculate the average working hours per employee type:
 ```sql
--- Procedimiento para calcular el promedio de horas de trabajo por tipo de empleado
-DELIMITER //
-CREATE PROCEDURE CalcularPromedioHorasPorTipoEmpleado()
+DELIMITER $$
+CREATE PROCEDURE avgHoursPerEmployee()
 BEGIN
-
-    -- Muestra el resultado del promedio de horas por tipo de empleado
     SELECT e.role AS employee_type, AVG(es.hours) AS average_hours
     FROM employee e
     LEFT JOIN employee_schedule es ON e.schedule_id = es.id
     GROUP BY e.role;
-END //
+END $$
 DELIMITER ;
 
+
+CALL avgHoursPerEmployee();
 ```
 
 ### event
@@ -806,7 +866,7 @@ DELETE FROM event WHERE id=1;
 1. Query within a procedure to find events with reservations made by customers under the age of 25:
 ```sql
 DELIMITER //
-CREATE PROCEDURE EncontrarEventosReservasMenoresDe25()
+CREATE PROCEDURE reservationsByCustomerAge()
 BEGIN
     SELECT e.*
     FROM event e
@@ -815,25 +875,30 @@ BEGIN
     WHERE TIMESTAMPDIFF(YEAR, c.date_of_birth, CURDATE()) < 25;
 END //
 DELIMITER ;
+
+
+CALL reservationsByCustomerAge();
 ```
 2. Query within a procedure to find events with the highest average entry fee:
 ```sql
 DELIMITER //
-CREATE PROCEDURE EncontrarEventosMayorTarifaPromedio()
+CREATE PROCEDURE highestAverageEvent()
 BEGIN
-    SELECT e.*, AVG(r.entry_fee) AS average_entry_fee
+    SELECT e.*, AVG(e.entry_fee) AS average_entry_fee
     FROM event e
     LEFT JOIN reservation r ON e.id = r.event_id
     GROUP BY e.id
     ORDER BY average_entry_fee DESC
-    LIMIT 5;
+    LIMIT 1;
 END //
 DELIMITER ;
+
+CALL highestAverageEvent();
 ```
 3. Query within a procedure to find events with reservations from customers who have a 'Premium' membership:
 ```sql
 DELIMITER //
-CREATE PROCEDURE EncontrarEventosReservasClientesPremium()
+CREATE PROCEDURE premiumCustomerReserv()
 BEGIN
     SELECT e.*
     FROM event e
@@ -843,13 +908,15 @@ BEGIN
     WHERE m.type = 'Premium';
 END //
 DELIMITER ;
+
+CALL premiumCustomerReserv();
 ```
 4. Query within a procedure to find events with the highest total revenue, considering both entry fees and consumption:
 ```sql
 DELIMITER //
-CREATE PROCEDURE EncontrarEventosMayorFacturacionTotal()
+CREATE PROCEDURE eventHighRevenue()
 BEGIN
-    SELECT e.*, (SUM(r.number_of_people * e.entry_fee) + COALESCE(SUM(c.quantity * i.price), 0)) AS total_revenue
+    SELECT e.*, SUM(r.number_of_people * e.entry_fee) + SUM(c.quantity * i.price) AS total_revenue
     FROM event e
     LEFT JOIN reservation r ON e.id = r.event_id
     LEFT JOIN receipt rc ON r.id = rc.id
@@ -860,6 +927,8 @@ BEGIN
     LIMIT 5;
 END //
 DELIMITER ;
+
+CALL eventHighRevenue();
 ```
 5.
 ```sql
@@ -940,11 +1009,23 @@ DELETE FROM inventory WHERE itemId=2;
 </details>
 
 ### Queries for inventory
-1.
+1. Total value of inventory by type:
 ```sql
+DELIMITER $$
+CREATE PROCEDURE totalInventoryValueByType(OUT total_value INT)
+BEGIN
+    SELECT SUM(quantity * price) INTO total_value
+    FROM inventory;
+END $$
+DELIMITER ;
+
+
+CALL totalInventoryValueByType(@totalValue);
+SELECT @totalValue AS 'Total Inventory Value';
 ```
-2.
+2. Update Inventory Prices by Category:
 ```sql
+
 ```
 3.
 ```sql
@@ -953,24 +1034,26 @@ DELETE FROM inventory WHERE itemId=2;
 ```sql
 DELIMITER $$
 
-CREATE PROCEDURE update_stock_level(IN item_id INT, IN quantity_change INT)
+CREATE PROCEDURE update_stock_level(IN initem_id INT, IN inquantity_change INT)
 BEGIN
   DECLARE new_stock INT;
 
   SELECT quantity INTO new_stock
   FROM inventory
-  WHERE item_id = item_id;
+  WHERE itemId = initem_id;
 
-  IF NOT FOUND THEN
+  IF NULL THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Item not found in inventory';
   END IF;
 
   UPDATE inventory
-  SET quantity = new_stock + quantity_change
-  WHERE item_id = item_id;
+  SET quantity = new_stock + inquantity_change
+  WHERE itemId = initem_id;
 END; $$
 DELIMITER ;
 
+
+CALL update_stock_level(5, 100);
 ```
 5.
 ```sql
@@ -1019,27 +1102,42 @@ BEGIN
 END; $$
 DELIMITER ;
 
-```
-2. Procedure to identify memberships with a high likelihood of renewal:
--- membresia pronta a renovaciones de cliente 0 o 1
-```sql
-CREATE PROCEDURE identify_high_renewal_likelihood_memberships()
-BEGIN
-  DECLARE membership_id INT;
-  DECLARE renewal_likelihood DECIMAL(10,2);
 
-  SELECT membership.id AS membership_id,
-         AVG(membership.renewal_history) AS renewal_likelihood
+CALL getMembersWithPreferences('regular discounts');
+```
+2. Procedure to identify memberships with a high likely of renewal:
+-- membresia pronta a renovaciones de client
+```sql
+
+DELIMITER $$
+CREATE PROCEDURE identify_high_renewal_memberships()
+BEGIN
+  SELECT membership.id AS membership_id, membership.status AS renewal_likelihood
   FROM membership
   GROUP BY membership.id
-  HAVING renewal_likelihood > 0.8;
+  HAVING renewal_likelihood = 'inactive';
+END $$
+DELIMITER ;
 
-  SET renewal_likelihood = renewal_likelihood;
-END;
+
+CALL identify_high_renewal_memberships();
 
 ```
-3.
+3. Get memberships with event discounts:
 ```sql
+DELIMITER $$
+CREATE PROCEDURE membershipsAndEventDiscounts()
+BEGIN
+    SELECT m.*, e.name AS event_name, e.entry_fee * 0.9 AS discounted_fee
+    FROM membership m
+    JOIN customer c ON m.id = c.membership_id
+    JOIN reservation r ON c.id = r.customer_id
+    JOIN event e ON r.event_id = e.id
+    WHERE m.status = 'Active';
+END $$
+DELIMITER ;
+
+CALL membershipsAndEventDiscounts();
 ```
 4.
 ```sql
@@ -1081,23 +1179,25 @@ DELETE FROM receipt WHERE table_id=4;
 ### Queries for receipt
 1. Procedure to identify customers who have exceeded a certain spending limit:
 ```sql
+
+DELIMITER $$
 CREATE PROCEDURE high_spending_customers()
 BEGIN
   DECLARE customer_id INT;
   DECLARE total_spent INT;
   DECLARE spending_limit INT;
 
-  SELECT customer.id AS customer_id,
-         SUM(receipt.total_amount) AS total_spent
+  SELECT customer.id AS customer_id, SUM(consumption.) AS total_spent
   FROM receipt
+  JOIN consumption
   JOIN reservation ON receipt.reservation_id = reservation.id
   JOIN customer ON reservation.customer_id = customer.id
   GROUP BY customer.id
   HAVING total_spent > spending_limit;
 
   SET total_spent = total_spent;
-END;
-
+END $$
+DELIMITER ;
 
 SET @spending_limit = 100;
 CALL high_spending_customers();
@@ -1106,15 +1206,12 @@ CALL high_spending_customers();
 2. Procedure to view the average receipt amount per customer type:
 ```sql
 DELIMITER $$
-CREATE PROCEDURE calculate_average_receipt_amount_per_customer_type_and_event_type()
+CREATE PROCEDURE receipt_amount_per_customer_type()
 BEGIN
   DECLARE customer_type ENUM('Premium','Basic','Gold','Silver');
-  DECLARE event_type ENUM('Concert','Party','Comedy Show');
   DECLARE average_amount INT;
 
-  SELECT membership.type AS customer_type,
-         event.type AS event_type,
-         AVG(receipt.total_amount) AS average_amount
+  SELECT membership.type AS customer_type AVG(receipt.total_amount) AS average_amount
   FROM receipt
   JOIN reservation ON receipt.reservation_id = reservation.id
   JOIN customer ON reservation.customer_id = customer.id
@@ -1126,6 +1223,8 @@ BEGIN
 END; $$
 DELIMITER ;
 
+
+CALL receipt_amount_per_customer_type();
 ```
 3.
 ```sql
@@ -1135,21 +1234,24 @@ DELIMITER ;
 ```
 5.  Procedure to identify receipts with a high likelihood of fraud:
 ```sql
+DELIMITER $$
 CREATE PROCEDURE identify_fraudulent_receipts()
 BEGIN
   DECLARE receipt_id INT;
   DECLARE fraud_likelihood DECIMAL(10,2);
 
-  SELECT receipt.id AS receipt_id,
-         AVG(receipt.item_quantity) AS average_item_quantity
+  SELECT receipt.id AS receipt_id, AVG(consumption.quantity) AS average_item_quantity
   FROM receipt
   JOIN consumption ON receipt.id = consumption.receipt_id
   GROUP BY receipt.id
   HAVING average_item_quantity > 5;
 
   SET fraud_likelihood = fraud_likelihood;
-END;
+END $$
+DELIMITER ;
 
+
+CALL identify_fraudulent_receipts();
 ```
 
 ### reservation
@@ -1188,6 +1290,20 @@ DELETE FROM reservation WHERE customer_id=2;
 ```
 2. Cancel Reservations with Unpaid Entry Fees:
 ```sql
+DELIMITER $$
+CREATE PROCEDURE CancelAndDeleteUnpaidReservations()
+BEGIN
+  UPDATE reservation
+  SET payment_status = 2  -- 2 represents Cancelled
+  WHERE payment_status = 0;
+
+  DELETE FROM reservation
+  WHERE payment_status = 2;
+END $$
+DELIMITER ;
+
+
+CALL CancelAndDeleteUnpaidReservations();
 ```
 3.  Procedure to generate a report on the average reservation amount per customer type:
 ```sql
@@ -1199,8 +1315,7 @@ BEGIN
   DECLARE average_amount INT;
 
   DECLARE average_reservation_cursor CURSOR FOR
-    SELECT customer.type AS customer_type,
-           AVG(receipt.total_amount) AS average_amount
+    SELECT customer.type AS customer_type, AVG(receipt.total_amount) AS average_amount
     FROM reservation
     JOIN customer ON reservation.customer_id = customer.id
     JOIN receipt ON reservation.id = receipt.reservation_id
@@ -1228,7 +1343,7 @@ DELIMITER ;
 4.
 ```sql
 ```
-5.
+5. send reservation confirmation to client:
 ```sql
 DELIMITER $$
 
@@ -1241,7 +1356,7 @@ BEGIN
     SELECT reservation.id AS reservation_id, customer.email AS customer_email
     FROM reservation
     JOIN customer ON reservation.customer_id = customer.id
-    WHERE reservation.payment_status = 0;
+    WHERE reservation.payment_status = 1;
 
   OPEN new_reservation_cursor;
 
@@ -1271,4 +1386,7 @@ END; $$
 
 DELIMITER ;
 
+
+
+CALL send_confirmation();
 ```
