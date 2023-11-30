@@ -34,60 +34,56 @@ As the client, running a nightclub business, I have specific needs for the datab
 By addressing these specific aspects, the database would help streamline operations, enhance customer experience, and provide valuable insights for business growth and development.
 
 ## Logical Model:
+
 Tables
 
 The database consists of the following tables:
 
-    employee_schedule: This table stores information about employee schedules, including the type of schedule (full-time or part-time), the number of hours worked per week, and the enter and exit hours.
+- employee_schedule: This table stores information about employee schedules, including the type of schedule (full-time or part-time), the number of hours worked per week, and the enter and exit hours.
 
-    disco_table: This table stores information about the nightclub's tables, including the table ID and its location.
+- disco_table: This table stores information about the nightclub's tables, including the table ID and its location.
 
-    reservation: This table stores information about reservations, including the customer ID, event ID, date, table ID, number of people, and payment status.
+- reservation: This table stores information about reservations, including the customer ID, event ID, date, table ID, number of people, and payment status.
 
-    event: This table stores information about events, including the event name, date, start time, end time, description, entry fee, and artist ID.
+- event: This table stores information about events, including the event name, date, start time, end time, description, entry fee, and artist ID.
 
-    consumption: This table stores information about consumption, including the item ID, quantity, and receipt ID.
+- consumption: This table stores information about consumption, including the item ID, quantity, and receipt ID.
 
-    artist: This table stores information about the nightclub's artists, including the artist ID, name, description, phone number, and music genre.
+- artist: This table stores information about the nightclub's artists, including the artist ID, name, description, phone number, and music genre.
 
-    membership: This table stores information about the nightclub's memberships, including the membership ID, type, description, preferences, and status.
+- membership: This table stores information about the nightclub's memberships, including the membership ID, type, description, preferences, and status.
 
-    event_employee: This table stores information about which employees are assigned to which events.
-    receipt: This table stores information about receipts, including the receipt ID, table ID, date and time, and payment method.
+- event_employee: This table stores information about which employees are assigned to which events.
 
-    employee: This table stores information about the nightclub's employees, including the employee ID, name, last name, role, phone number, email address, gender (optional), date of birth, address, and schedule ID.
+- receipt: This table stores information about receipts, including the receipt ID, table ID, date and time, and payment method.
 
-    customer: This table stores information about the nightclub's customers, including the customer ID, name, last name, gender (optional), date of birth, phone number, email address, address, and membership ID.
+- employee: This table stores information about the nightclub's employees, including the employee ID, name, last name, role, phone number, email address, gender (optional), date of birth, address, and schedule ID.
 
-    inventory: This table stores information about the nightclub's inventory, including the item ID, item name, item type, item code, quantity, and price.
+- customer: This table stores information about the nightclub's customers, including the customer ID, name, last name, gender (optional), date of birth, phone number, email address, address, and membership ID.
+
+- inventory: This table stores information about the nightclub's inventory, including the item ID, item name, item type, item code, quantity, and price.
+
 
 Relationships
 
 The tables are related to each other in the following ways:
 
-The event_employee table has a foreign key constraint that references the event table. This means that each record in the event_employee table must have a corresponding record in the event table with the same event ID.
+> The `event_employee` table has a foreign key constraint that references the `event table`. This means that each record in the `event_employee` table must have a corresponding record in the `event table` with the same event ID.
+It also has a foreign key constraint that references the `employee` table.
 
-    The consumption table has a foreign key constraint that references the receipt table. This means that each record in the consumption table must have a corresponding record in the receipt table with the same receipt ID.
+> The `consumption` table has a foreign key constraint that references the `receipt` table and a foreign key constraint that references the `inventory` table.
 
-    The event table has a foreign key constraint that references the artist table. This means that each record in the event table must have a corresponding record in the artist table with the same artist ID.
+> The `event` table has a foreign key constraint that references the `artist` table.
 
-    The employee table has a foreign key constraint that references the employee_schedule table. This means that each record in the employee table must have a corresponding record in the employee_schedule table with the same schedule ID.
+> The `employee` table has a foreign key constraint that references the `employee_schedule` table.
 
-    The reservation table has a foreign key constraint that references the event table. This means that each record in the reservation table must have a corresponding record in the event table with the same event ID.
+> The `reservation` table has a foreign key constraint that references the `event` table, it also has a foreign key constraint that references the `disco_table` table and a foreign key constraint that references the `customer` table.
 
-    The receipt table has a foreign key constraint that references the disco_table table. This means that each record in the receipt table must have a corresponding record in the disco_table table with the same table ID.
+> The `receipt` table has a foreign key constraint that references the `disco_table` table.
 
-    The customer table has a foreign key constraint that references the membership table. This means that each record in the customer table must have a corresponding record in the membership table with the same membership ID.
+> The `customer` table has a foreign key constraint that references the `membership` table.
 
-    The reservation table has a foreign key constraint that references the disco_table table. This means that each record in the reservation table must have a corresponding record in the disco_table table with the same table ID.
-
-    The reservation table has a foreign key constraint that references the customer table. This means that each record in the reservation table must have a corresponding record in the customer table with the same customer ID.
-
-    The event_employee table has a foreign key constraint that references the employee table. This means that each record in the event_employee table must have a corresponding record in the employee table with the same employee ID.
-
-    The consumption table has a foreign key constraint that references the inventory table. This means that each record in the consumption table must have a corresponding record in the inventory table with the same item ID.
-
-
+### Resume
     Primary Entities:
         Customer:
             Attributes: CustomerID (Primary Key), Name, ContactInfo, MembershipStatus.
@@ -102,7 +98,7 @@ The event_employee table has a foreign key constraint that references the event 
         Reservation:
             Fields: ReservationID (Primary Key), CustomerID, TableNumber, Date.
 
-## Relationships
+## Relationships Resume
 Reservation-Customer (One-to-Many):
 
     Relates Reservation with Customer for tracking preferences.
@@ -130,7 +126,7 @@ Views:
 ### artist
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -158,14 +154,61 @@ DELETE FROM artist WHERE id=3;
 </details>
 
 ### Queries for artist
-1.
+1. Get artists with similar events to the reference artist:
 ```sql
+DELIMITER $$
+
+CREATE PROCEDURE getArtistsSimilarEvents(IN reference_artist_id INT)
+BEGIN
+    SELECT a.*
+    FROM artist a
+    WHERE EXISTS (SELECT 1 FROM event e1 WHERE e1.artist_id = reference_artist_id
+    AND e1.entry_fee = e.entry_fee
+    AND e1.description = e.description
+    )
+    AND a.id != reference_artist_id;
+END; $$
+DELIMITER ;
+
 ```
-2.
+2. Get artists with most sold tickets:
 ```sql
+DELIMITER $$
+
+CREATE PROCEDURE getArtistsMostSoldTickets()
+BEGIN
+    SELECT
+        a.*, SUM(r.number_of_people) AS total_tickets_sold
+    FROM
+        artist a
+    LEFT JOIN event e ON a.id = e.artist_id
+    LEFT JOIN reservation r ON e.id = r.event_id
+    GROUP BY
+        a.id
+    ORDER BY
+        total_tickets_sold DESC;
+END; $$
+DELIMITER ;
+
 ```
-3.
+3. Get Artists with High Entry Fees:
 ```sql
+DELIMITER $$
+
+CREATE PROCEDURE getArtistsHighEF(IN min_entry_fee INT)
+BEGIN
+    SELECT
+        a.*, AVG(e.entry_fee) AS avg_entry_fee
+    FROM
+        artist a
+    JOIN event e ON a.id = e.artist_id
+    GROUP BY
+        a.id
+    HAVING
+        avg_entry_fee > min_entry_fee;
+END; $$
+DELIMITER ;
+
 ```
 4.
 ```sql
@@ -177,7 +220,7 @@ DELETE FROM artist WHERE id=3;
 ### consumption
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -202,8 +245,25 @@ DELETE FROM consumption WHERE receipt_id=3;
 </details>
 
 ### Queries for consumption
-1.
+1. Get items with increasing sales trend:
 ```sql
+DELIMITER $$
+
+CREATE PROCEDURE itemsIncreasingSales()
+BEGIN
+    SELECT item_id, item_name,
+        (SELECT SUM(quantity) 
+            FROM consumption c
+            WHERE c.item_id = i.item_id
+            AND DATE_SUB(CURDATE(), INTERVAL 3 MONTH) <= (SELECT MAX(datetime) 
+            FROM receipt r 
+            WHERE r.id = c.receipt_id)
+        ) AS quantity_last_three_months
+    FROM
+        inventory i;
+END; $$
+DELIMITER ;
+
 ```
 2.
 ```sql
@@ -211,7 +271,7 @@ DELETE FROM consumption WHERE receipt_id=3;
 3.
 ```sql
 ```
-4.
+4. Calculate Total Revenue from Consumables:
 ```sql
 ```
 5.
@@ -221,7 +281,7 @@ DELETE FROM consumption WHERE receipt_id=3;
 ### customer
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -269,7 +329,7 @@ DELETE FROM customer WHERE id=1;
 ### disco_table
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -294,26 +354,36 @@ DELETE FROM disco_table WHERE location='Rooftop';
 </details>
 
 ### Queries for disco_table
-1.
+1. Get Available Tables:
 ```sql
 ```
-2.
+2. Identify Popular Tables:
 ```sql
 ```
-3.
+3. List tables located in the 'Rooftop' and their respective reservations:
 ```sql
+SELECT d.tableId, d.location, r.id AS reservation_id, r.date, r.number_of_people
+FROM disco_table d
+JOIN reservation r ON d.tableId = r.table_id
+WHERE d.location = 'Rooftop';
 ```
-4.
+4. Find the table with the highest number of reservations in a specific month:
 ```sql
+SELECT d.tableId, d.location, COUNT(r.id) AS reservation_count
+FROM disco_table d
+LEFT JOIN reservation r ON d.tableId = r.table_id
+GROUP BY d.tableId, d.location
+ORDER BY reservation_count DESC
+LIMIT 1;
 ```
-5.
+5. List the total number of people served on each table in one event:
 ```sql
 ```
 
 ### employee
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -361,7 +431,7 @@ DELETE FROM employee WHERE id=4;
 ### employee_schedule
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -389,26 +459,26 @@ DELETE FROM employee_schedule WHERE type='part time';
 </details>
 
 ### Queries for employee_schedule
-1.
+1. Procedure to calculate the total number of hours worked by each employee:
 ```sql
 ```
 2.
 ```sql
 ```
-3.
+3. Procedure to identify employees who are eligible for overtime pay:
 ```sql
 ```
 4.
 ```sql
 ```
-5.
+5. Procedure to calculate the average working hours per employee type:
 ```sql
 ```
 
 ### event
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -456,7 +526,7 @@ DELETE FROM event WHERE id=1;
 ### event_employee
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -500,7 +570,7 @@ DELETE FROM event_employee WHERE id=3;
 ### inventory
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -537,8 +607,28 @@ DELETE FROM inventory WHERE itemId=2;
 3.
 ```sql
 ```
-4.
+4. Procedure to update the stock level for an item:
 ```sql
+DELIMITER $$
+
+CREATE PROCEDURE update_stock_level(IN item_id INT, IN quantity_change INT)
+BEGIN
+  DECLARE new_stock INT;
+
+  SELECT quantity INTO new_stock
+  FROM inventory
+  WHERE item_id = item_id;
+
+  IF NOT FOUND THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Item not found in inventory';
+  END IF;
+
+  UPDATE inventory
+  SET quantity = new_stock + quantity_change
+  WHERE item_id = item_id;
+END; $$
+DELIMITER ;
+
 ```
 5.
 ```sql
@@ -547,7 +637,7 @@ DELETE FROM inventory WHERE itemId=2;
 ### membership
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -575,11 +665,36 @@ DELETE FROM membership WHERE id=2;
 </details>
 
 ### Queries for membership
-1.
+1. Get members with specific preferences:
 ```sql
+DELIMITER $$
+
+CREATE PROCEDURE getMembersWithPreferences(IN preferred_features VARCHAR(50))
+BEGIN
+    SELECT *
+    FROM membership
+    WHERE preferences LIKE CONCAT('%', preferred_features, '%');
+END; $$
+DELIMITER ;
+
 ```
-2.
+2. Procedure to identify memberships with a high likelihood of renewal:
+-- membresia pronta a renovaciones de cliente 0 o 1
 ```sql
+CREATE PROCEDURE identify_high_renewal_likelihood_memberships()
+BEGIN
+  DECLARE membership_id INT;
+  DECLARE renewal_likelihood DECIMAL(10,2);
+
+  SELECT membership.id AS membership_id,
+         AVG(membership.renewal_history) AS renewal_likelihood
+  FROM membership
+  GROUP BY membership.id
+  HAVING renewal_likelihood > 0.8;
+
+  SET renewal_likelihood = renewal_likelihood;
+END;
+
 ```
 3.
 ```sql
@@ -594,7 +709,7 @@ DELETE FROM membership WHERE id=2;
 ### receipt
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -622,11 +737,53 @@ DELETE FROM receipt WHERE table_id=4;
 </details>
 
 ### Queries for receipt
-1.
+1. Procedure to identify customers who have exceeded a certain spending limit:
 ```sql
+CREATE PROCEDURE high_spending_customers()
+BEGIN
+  DECLARE customer_id INT;
+  DECLARE total_spent INT;
+  DECLARE spending_limit INT;
+
+  SELECT customer.id AS customer_id,
+         SUM(receipt.total_amount) AS total_spent
+  FROM receipt
+  JOIN reservation ON receipt.reservation_id = reservation.id
+  JOIN customer ON reservation.customer_id = customer.id
+  GROUP BY customer.id
+  HAVING total_spent > spending_limit;
+
+  SET total_spent = total_spent;
+END;
+
+
+SET @spending_limit = 100;
+CALL high_spending_customers();
+
 ```
-2.
+2. Procedure to view the average receipt amount per customer type:
 ```sql
+DELIMITER $$
+CREATE PROCEDURE calculate_average_receipt_amount_per_customer_type_and_event_type()
+BEGIN
+  DECLARE customer_type ENUM('Premium','Basic','Gold','Silver');
+  DECLARE event_type ENUM('Concert','Party','Comedy Show');
+  DECLARE average_amount INT;
+
+  SELECT membership.type AS customer_type,
+         event.type AS event_type,
+         AVG(receipt.total_amount) AS average_amount
+  FROM receipt
+  JOIN reservation ON receipt.reservation_id = reservation.id
+  JOIN customer ON reservation.customer_id = customer.id
+  JOIN membership ON customer.membership_id = membership.id
+  JOIN event ON reservation.event_id = event.id
+  GROUP BY membership.type, event.type;
+
+  SET average_amount = average_amount;
+END; $$
+DELIMITER ;
+
 ```
 3.
 ```sql
@@ -634,14 +791,29 @@ DELETE FROM receipt WHERE table_id=4;
 4.
 ```sql
 ```
-5.
+5.  Procedure to identify receipts with a high likelihood of fraud:
 ```sql
+CREATE PROCEDURE identify_fraudulent_receipts()
+BEGIN
+  DECLARE receipt_id INT;
+  DECLARE fraud_likelihood DECIMAL(10,2);
+
+  SELECT receipt.id AS receipt_id,
+         AVG(receipt.item_quantity) AS average_item_quantity
+  FROM receipt
+  JOIN consumption ON receipt.id = consumption.receipt_id
+  GROUP BY receipt.id
+  HAVING average_item_quantity > 5;
+
+  SET fraud_likelihood = fraud_likelihood;
+END;
+
 ```
 
 ### reservation
 <details>
 <summary>
-> CRUD QUERIES </summary>
+CRUD QUERIES </summary>
 
 CREATE (means adding or inserting rows into a table).
 ```sql
@@ -669,18 +841,92 @@ DELETE FROM reservation WHERE customer_id=2;
 </details>
 
 ### Queries for reservation
-1.
+1. Calculate Total Revenue for an Event:
 ```sql
 ```
-2.
+2. Cancel Reservations with Unpaid Entry Fees:
 ```sql
 ```
-3.
+3.  Procedure to generate a report on the average reservation amount per customer type:
 ```sql
+DELIMITER $$
+
+CREATE PROCEDURE averageReservationPerCustomerType()
+BEGIN
+  DECLARE customer_type ENUM('Premium','Basic','Gold','Silver');
+  DECLARE average_amount INT;
+
+  DECLARE average_reservation_cursor CURSOR FOR
+    SELECT customer.type AS customer_type,
+           AVG(receipt.total_amount) AS average_amount
+    FROM reservation
+    JOIN customer ON reservation.customer_id = customer.id
+    JOIN receipt ON reservation.id = receipt.reservation_id
+    GROUP BY customer.type;
+
+  OPEN average_reservation_cursor;
+
+  average_reservation_loop: LOOP
+    FETCH average_reservation_cursor INTO customer_type, average_amount;
+
+    IF NOT FOUND THEN
+      LEAVE average_reservation_loop;
+    END IF;
+
+    UPDATE customer
+    SET average_reservation_amount = average_amount
+    WHERE type = customer_type;
+  END LOOP;
+
+  CLOSE average_reservation_cursor;
+END; $$
+DELIMITER ;
+
 ```
 4.
 ```sql
 ```
 5.
 ```sql
+DELIMITER $$
+
+CREATE PROCEDURE send_confirmation()
+BEGIN
+  DECLARE reservation_id INT;
+  DECLARE customer_email VARCHAR(255);
+
+  DECLARE new_reservation_cursor CURSOR FOR
+    SELECT reservation.id AS reservation_id, customer.email AS customer_email
+    FROM reservation
+    JOIN customer ON reservation.customer_id = customer.id
+    WHERE reservation.payment_status = 0;
+
+  OPEN new_reservation_cursor;
+
+  reservation_loop: LOOP
+    FETCH new_reservation_cursor INTO reservation_id, customer_email;
+
+    IF NOT FOUND THEN
+      LEAVE reservation_loop;
+    END IF;
+
+    SET @email_subject = 'Your Reservation is Confirmed';
+    SET @email_body = 'Dear Customer,
+
+    Your reservation for Event has been confirmed.
+
+    Sincerely,
+
+    The Nightclub Team';
+
+    UPDATE reservation
+    SET payment_status = 1
+    WHERE id = reservation_id;
+  END LOOP;
+
+  CLOSE new_reservation_cursor;
+END; $$
+
+DELIMITER ;
+
 ```
