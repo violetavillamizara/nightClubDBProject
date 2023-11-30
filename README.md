@@ -961,23 +961,6 @@ DELETE FROM event_employee WHERE id=3;
 ```
 </details>
 
-### Queries for event_employee
-1.
-```sql
-```
-2.
-```sql
-```
-3.
-```sql
-```
-4.
-```sql
-```
-5.
-```sql
-```
-
 ### inventory
 <details>
 <summary>
@@ -1025,6 +1008,18 @@ SELECT @totalValue AS 'Total Inventory Value';
 ```
 2. Update Inventory Prices by Category:
 ```sql
+DELIMITER $$
+
+CREATE PROCEDURE updateInventoryPricesByCategory(IN category_name VARCHAR(50), IN price_increase INT)
+BEGIN
+  UPDATE inventory
+  SET price = price + price_increase
+  WHERE item_type = category_name;
+END $$
+DELIMITER ;
+
+
+CALL updateInventoryPricesByCategory('Drinks', 5);
 
 ```
 3.
@@ -1179,52 +1174,29 @@ DELETE FROM receipt WHERE table_id=4;
 ### Queries for receipt
 1. Procedure to identify customers who have exceeded a certain spending limit:
 ```sql
-
 DELIMITER $$
 CREATE PROCEDURE high_spending_customers()
 BEGIN
-  DECLARE customer_id INT;
-  DECLARE total_spent INT;
-  DECLARE spending_limit INT;
+  SELECT cu.id AS customer_id, SUM(i.price)  AS total_spent
+  FROM receipt rec
+  JOIN disco_table dt ON rec.id = dt.tableid
+  JOIN reservation re ON dt.tableid = re.id
+  JOIN customer cu ON re.id = cu.id
+  JOIN consumption c ON rec.id = c.id
+  JOIN inventory i ON  c.id = i.itemid 
+  GROUP BY cu.id
+  HAVING total_spent > 20;
 
-  SELECT customer.id AS customer_id, SUM(consumption.) AS total_spent
-  FROM receipt
-  JOIN consumption
-  JOIN reservation ON receipt.reservation_id = reservation.id
-  JOIN customer ON reservation.customer_id = customer.id
-  GROUP BY customer.id
-  HAVING total_spent > spending_limit;
-
-  SET total_spent = total_spent;
 END $$
 DELIMITER ;
 
-SET @spending_limit = 100;
+
 CALL high_spending_customers();
-
 ```
-2. Procedure to view the average receipt amount per customer type:
+2. Procedure to view the average receipt amount per customer/membership type:
 ```sql
-DELIMITER $$
-CREATE PROCEDURE receipt_amount_per_customer_type()
-BEGIN
-  DECLARE customer_type ENUM('Premium','Basic','Gold','Silver');
-  DECLARE average_amount INT;
 
-  SELECT membership.type AS customer_type AVG(receipt.total_amount) AS average_amount
-  FROM receipt
-  JOIN reservation ON receipt.reservation_id = reservation.id
-  JOIN customer ON reservation.customer_id = customer.id
-  JOIN membership ON customer.membership_id = membership.id
-  JOIN event ON reservation.event_id = event.id
-  GROUP BY membership.type, event.type;
-
-  SET average_amount = average_amount;
-END; $$
-DELIMITER ;
-
-
-CALL receipt_amount_per_customer_type();
+CALL receipt_amount_per_customer_type('gold');
 ```
 3.
 ```sql
@@ -1307,37 +1279,6 @@ CALL CancelAndDeleteUnpaidReservations();
 ```
 3.  Procedure to generate a report on the average reservation amount per customer type:
 ```sql
-DELIMITER $$
-
-CREATE PROCEDURE averageReservationPerCustomerType()
-BEGIN
-  DECLARE customer_type ENUM('Premium','Basic','Gold','Silver');
-  DECLARE average_amount INT;
-
-  DECLARE average_reservation_cursor CURSOR FOR
-    SELECT customer.type AS customer_type, AVG(receipt.total_amount) AS average_amount
-    FROM reservation
-    JOIN customer ON reservation.customer_id = customer.id
-    JOIN receipt ON reservation.id = receipt.reservation_id
-    GROUP BY customer.type;
-
-  OPEN average_reservation_cursor;
-
-  average_reservation_loop: LOOP
-    FETCH average_reservation_cursor INTO customer_type, average_amount;
-
-    IF NOT FOUND THEN
-      LEAVE average_reservation_loop;
-    END IF;
-
-    UPDATE customer
-    SET average_reservation_amount = average_amount
-    WHERE type = customer_type;
-  END LOOP;
-
-  CLOSE average_reservation_cursor;
-END; $$
-DELIMITER ;
 
 ```
 4.
