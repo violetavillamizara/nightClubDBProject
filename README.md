@@ -154,21 +154,19 @@ DELETE FROM artist WHERE id=3;
 </details>
 
 ### Queries for artist
-1. Get artists with similar events to the reference artist:
+1. Get artists with similar music_gender to the reference artist:
 ```sql
 DELIMITER $$
-CREATE PROCEDURE getArtistsSimilarEvents(IN reference_artist_id INT)
+CREATE PROCEDURE getArtistsSimilarMusic(IN reference_artist_id INT)
 BEGIN
-    SELECT DISTINCT a.*
-    FROM artist a
-    JOIN event e1 ON a.id = e1.artist_id
-    JOIN event e2 ON e1.id <> e2.id AND e1.description LIKE CONCAT('%', e2.description, '%');
-    WHERE e2.artist_id = reference_artist_id;
+    SELECT * FROM artist a
+    WHERE a.music_gender = (SELECT music_gender FROM artist a1 where a1.id = reference_artist_id)
+    AND a.id != reference_artist_id;
 END $$
 DELIMITER ;
 
 
-CALL getArtistsSimilarEvents(5);
+CALL getArtistsSimilarMusic(5);
 ```
 2. Get artists with most sold tickets:
 ```sql
@@ -228,8 +226,18 @@ CALL artistsMostEventsInGenre('Rock', @genreArtistName, @eventCount);
 SELECT @genreArtistName, @eventCount;
 
 ```
-5.
+5. Get artists with similar events to the reference artist:
 ```sql
+DELIMITER $$
+CREATE PROCEDURE getArtistsSimilarEvents(IN reference_event VARCHAR(50))
+BEGIN
+    SELECT * FROM artist a
+    JOIN event ON a.id = event.artist_id
+    WHERE event.description LIKE '%reference_event%'
+END $$
+DELIMITER ;
+
+CALL getArtistsSimilarEvents('concert');
 ```
 
 ### consumption
@@ -292,7 +300,7 @@ BEGIN
     JOIN inventory i ON c.item_id = i.itemId
     JOIN receipt r ON c.receipt_id = r.id
     JOIN reservation res ON r.table_id = res.table_id
-    WHERE res.event_id = p_event_id;
+    WHERE res.event_id = inevent_id;
 END $$
 DELIMITER ;
 
